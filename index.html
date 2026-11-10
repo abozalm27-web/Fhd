@@ -1,27 +1,216 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon City</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#111820">
+<title>Neon City — 3D</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;font-family:system-ui,sans-serif;color:white}canvas{display:block}#hud{position:fixed;inset:0;pointer-events:none}#brand{position:absolute;top:14px;right:14px;background:#07131dcc;padding:9px 14px;border:1px solid #40d9c5;border-radius:12px;font-weight:800}#hint{position:absolute;top:62px;right:14px;background:#07131dbb;padding:7px 10px;border-radius:9px;font-size:12px}#joy{position:absolute;bottom:25px;left:25px;width:125px;height:125px;border-radius:50%;background:#ffffff20;border:2px solid #ffffff66;pointer-events:auto;touch-action:none}#nub{position:absolute;width:48px;height:48px;border-radius:50%;background:#40d9c5cc;left:36px;top:36px}#action{position:absolute;bottom:40px;right:28px;width:76px;height:76px;border:0;border-radius:50%;background:#40d9c5;color:#06211e;font-weight:900;font-size:14px;pointer-events:auto}#status{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:#d6e8e7;background:#07131daa;padding:5px 9px;border-radius:8px;white-space:nowrap}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111820;color:#fff;font-family:system-ui,-apple-system,sans-serif}canvas#game{display:block;width:100%;height:100%;touch-action:none}
+#hud{position:fixed;inset:0;z-index:5;pointer-events:none}
+#brand{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;background:#07131ddd;padding:8px 13px;border:1px solid #40d9c5;border-radius:12px;font-weight:900;letter-spacing:1px}
+#hint{position:absolute;top:62px;right:12px;background:#07131dcc;padding:7px 10px;border-radius:9px;font-size:11px;color:#d9f6f1}
+#status{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;background:#07131ddd;border:1px solid #52666b;border-radius:10px;padding:7px 10px;font-size:11px;max-width:47vw}
+#joy{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom));left:22px;width:124px;height:124px;border-radius:50%;background:#07131d88;border:2px solid #ffffff88;pointer-events:auto;touch-action:none}
+#nub{position:absolute;width:48px;height:48px;border-radius:50%;background:#40d9c5dd;left:36px;top:36px;box-shadow:0 2px 14px #0008}
+.ctrl{position:absolute;bottom:calc(36px + env(safe-area-inset-bottom));border:1px solid #bceee7;background:#40d9c5;color:#06211e;border-radius:50%;width:68px;height:68px;font-weight:900;font-size:13px;pointer-events:auto;box-shadow:0 4px 18px #0005}
+#jump{right:22px}#run{right:100px;background:#15252dcc;color:#fff;border-color:#ffffff88}
+#mapBtn{position:absolute;top:calc(104px + env(safe-area-inset-top));left:12px;border:1px solid #9eece1;background:#07131ddd;color:#fff;border-radius:10px;padding:9px 13px;font-weight:800;pointer-events:auto}
+#mapPanel{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(86vw,430px);background:#07131df5;border:1px solid #40d9c5;border-radius:18px;padding:12px;pointer-events:auto;box-shadow:0 12px 40px #0009}
+#mapPanel.open{display:block}#mapHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:800}#mapClose{border:0;border-radius:9px;background:#29434a;color:white;font-size:18px;padding:3px 11px}
+#mapCanvas{width:100%;aspect-ratio:1;display:block;border-radius:10px;background:#17242c}
+#mapNote{font-size:11px;color:#cde8e4;margin-top:8px}
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#0b1722dd,#0b1722ee);font-weight:800;font-size:14px;text-align:center;padding:30px;pointer-events:none}
+#credits{position:absolute;bottom:calc(8px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);white-space:nowrap;background:#07131dbb;border-radius:8px;padding:4px 8px;font-size:9px;color:#b8ceca}
+button{cursor:pointer}
+@media(max-height:650px){#joy{width:100px;height:100px}#nub{left:27px;top:27px}#run{right:90px}.ctrl{width:58px;height:58px}}
 </style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
 </head>
 <body>
-<div id="hud"><div id="brand">NEON CITY</div><div id="hint">تحرّك بالعصا • اسحب الشاشة لتدوير الكاميرا</div><div id="joy"><div id="nub"></div></div><button id="action">قفز</button><div id="status">نسخة تجريبية أصلية • مدينة ثلاثية الأبعاد</div></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script>
-(()=>{const scene=new THREE.Scene();scene.background=new THREE.Color(0x8bb8c8);scene.fog=new THREE.Fog(0x8bb8c8,35,125);
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,250);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;document.body.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xcceeff,0x52606a,2));const sun=new THREE.DirectionalLight(0xffedcf,2.2);sun.position.set(-25,45,20);sun.castShadow=true;scene.add(sun);
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(220,220),new THREE.MeshStandardMaterial({color:0x35434a,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
-const roadMat=new THREE.MeshStandardMaterial({color:0x202a30}),lineMat=new THREE.MeshStandardMaterial({color:0xe4d9a2});
-for(let i=-5;i<=5;i++){let road=new THREE.Mesh(new THREE.BoxGeometry(9,.06,220),roadMat);road.position.set(i*20,.03,0);scene.add(road);let cross=new THREE.Mesh(new THREE.BoxGeometry(220,.06,9),roadMat);cross.position.set(0,.035,i*20);scene.add(cross)}
-for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++){if(Math.abs(i)%2===0&&Math.abs(j)%2===0)continue;let x=i*20+(Math.random()-.5)*5,z=j*20+(Math.random()-.5)*5,w=7+Math.random()*5,d=7+Math.random()*5,h=8+Math.random()*30;let mat=new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(.52+Math.random()*.12,.18,.24+Math.random()*.2),roughness:.8});let b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);b.position.set(x,h/2,z);b.castShadow=true;b.receiveShadow=true;scene.add(b);for(let y=2;y<h-1;y+=2.5){for(let xx=-w/2+1;xx<w/2;xx+=2){let win=new THREE.Mesh(new THREE.BoxGeometry(.75,1,.08),new THREE.MeshStandardMaterial({color:0x83d9d2,emissive:0x245d5b,emissiveIntensity:.35}));win.position.set(x+xx,y,z+d/2+.05);scene.add(win)}}}
-const player=new THREE.Group();scene.add(player);const skin=new THREE.MeshStandardMaterial({color:0xe2a77d}),shirt=new THREE.MeshStandardMaterial({color:0x16b6a4}),pants=new THREE.MeshStandardMaterial({color:0x25364b});const torso=new THREE.Mesh(new THREE.BoxGeometry(.8,1.05,.42),shirt);torso.position.y=1.45;player.add(torso);const head=new THREE.Mesh(new THREE.SphereGeometry(.29,16,12),skin);head.position.y=2.2;player.add(head);for(let s of [-1,1]){let leg=new THREE.Mesh(new THREE.BoxGeometry(.27,.8,.3),pants);leg.position.set(s*.22,.48,0);player.add(leg);let arm=new THREE.Mesh(new THREE.BoxGeometry(.22,.85,.24),skin);arm.position.set(s*.53,1.48,0);player.add(arm)}
-player.position.set(0,0,0);let yaw=0,moveX=0,moveY=0,velY=0,grounded=true;const joy=document.getElementById('joy'),nub=document.getElementById('nub');let joyOn=false;function joyMove(e){let r=joy.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),m=Math.min(42,Math.hypot(x,y)),a=Math.atan2(y,x);moveX=Math.cos(a)*m/42;moveY=Math.sin(a)*m/42;nub.style.left=(36+Math.cos(a)*m)+'px';nub.style.top=(36+Math.sin(a)*m)+'px'}joy.addEventListener('pointerdown',e=>{joyOn=true;joy.setPointerCapture(e.pointerId);joyMove(e)});joy.addEventListener('pointermove',e=>{if(joyOn)joyMove(e)});function joyEnd(){joyOn=false;moveX=moveY=0;nub.style.left='36px';nub.style.top='36px'}joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
-let keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);document.getElementById('action').onclick=()=>{if(grounded){velY=8;grounded=false}};
-let dragging=false,lastX=0;addEventListener('pointerdown',e=>{if(e.target===renderer.domElement){dragging=true;lastX=e.clientX}});addEventListener('pointerup',()=>dragging=false);addEventListener('pointermove',e=>{if(dragging){yaw-=(e.clientX-lastX)*.006;lastX=e.clientX}});
-const clock=new THREE.Clock();function loop(){requestAnimationFrame(loop);let dt=Math.min(clock.getDelta(),.04);let ix=moveX+(keys.d?1:0)-(keys.a?1:0),iy=moveY+(keys.s?1:0)-(keys.w?1:0);let len=Math.hypot(ix,iy);if(len>1){ix/=len;iy/=len}let forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));player.position.addScaledVector(forward,-iy*7*dt);player.position.addScaledVector(right,ix*7*dt);if(len>.08)player.rotation.y=Math.atan2(-forward.x*(-iy)+right.x*ix,-forward.z*(-iy)+right.z*ix);velY-=20*dt;player.position.y+=velY*dt;if(player.position.y<0){player.position.y=0;velY=0;grounded=true}let target=new THREE.Vector3(player.position.x+Math.sin(yaw)*8,player.position.y+4.5,player.position.z+Math.cos(yaw)*8);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.x,player.position.y+1.2,player.position.z);renderer.render(scene,camera)}loop();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+<div id="hud">
+ <div id="brand">NEON CITY</div>
+ <div id="hint">حرّك العصا للمشي • اسحب الشاشة لتدوير الكاميرا</div>
+ <div id="status">جاري تحميل المدينة...</div>
+ <button id="mapBtn">الخريطة</button>
+ <div id="joy"><div id="nub"></div></div>
+ <button class="ctrl" id="jump">قفز</button>
+ <button class="ctrl" id="run">ركض</button>
+ <div id="mapPanel"><div id="mapHead"><span>خريطة المدينة</span><button id="mapClose">×</button></div><canvas id="mapCanvas" width="512" height="512"></canvas><div id="mapNote">النقطة الزرقاء هي موقعك الحالي. تحرّك لاستكشاف الشوارع والمباني.</div></div>
+ <div id="credits">مباني وشوارع Kenney CC0 • شخصية ومقاطع حركة Three.js</div>
+ <div id="loading">تحميل الشخصية والمباني ثلاثية الأبعاد...<br>قد يستغرق التحميل الأول بعض الوقت</div>
+</div>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
+
+const statusEl=document.getElementById("status"), loadingEl=document.getElementById("loading");
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x89b6c6);scene.fog=new THREE.Fog(0x89b6c6,75,230);
+const camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.1,420);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.domElement.id="game";document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xdff5ff,0x47555a,2.0));
+const sun=new THREE.DirectionalLight(0xffedcf,2.25);sun.position.set(-45,85,30);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
+
+const loader=new GLTFLoader();
+const CDN="https://cdn.jsdelivr.net/gh/Hidencod/tge-assets@main/";
+const CITY=[
+ "packs/city-kit-commercial/building-a.glb",
+ "packs/city-kit-commercial/building-b.glb",
+ "packs/city-kit-commercial/building-c.glb",
+ "packs/city-kit-commercial/building-d.glb",
+ "packs/city-kit-commercial/building-e.glb",
+ "packs/city-kit-commercial/building-f.glb",
+ "packs/city-kit-commercial/building-g.glb",
+ "packs/city-kit-commercial/building-skyscraper-a.glb",
+ "packs/city-kit-commercial/building-skyscraper-b.glb",
+ "packs/city-kit-commercial/building-skyscraper-c.glb"
+];
+const ROAD_STRAIGHT="packs/city-kit-roads/road-straight.glb";
+const ROAD_CROSS="packs/city-kit-roads/road-crossroad.glb";
+const PLAYER_URL="https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/Soldier.glb";
+const tile=26, worldEdge=104;
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(260,260),new THREE.MeshStandardMaterial({color:0x263238,roughness:1}));
+ground.rotation.x=-Math.PI/2;ground.position.y=-.12;ground.receiveShadow=true;scene.add(ground);
+
+const roadBase=new THREE.MeshStandardMaterial({color:0x252b30,roughness:1});
+const fallbackRoad=new THREE.Mesh(new THREE.PlaneGeometry(tile,tile),roadBase);fallbackRoad.rotation.x=-Math.PI/2;
+const loaded={buildings:[],straight:null,cross:null,character:null};
+const mixers=[];
+function boxSize(obj){const b=new THREE.Box3().setFromObject(obj);const s=new THREE.Vector3();b.getSize(s);return {b,s};}
+function placeAsset(src,x,z,targetW=9,targetD=9,targetH=18,rotate=0){
+ const obj=src.clone(true);const {b,s}=boxSize(obj);if(s.x<.001||s.y<.001||s.z<.001)return null;
+ const scale=Math.min(targetW/s.x,targetD/s.z,targetH/s.y);obj.scale.setScalar(scale);
+ const minY=b.min.y*scale,centerX=(b.min.x+b.max.x)*.5*scale,centerZ=(b.min.z+b.max.z)*.5*scale;
+ obj.position.set(x-centerX,-minY,z-centerZ);obj.rotation.y=rotate;
+ obj.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});scene.add(obj);return obj;
+}
+function placeRoad(src,x,z,rotate=0){
+ if(!src){const m=fallbackRoad.clone();m.position.set(x,.015,z);scene.add(m);return}
+ const obj=src.clone(true);const {b,s}=boxSize(obj);const sx=tile/Math.max(s.x,.001),sz=tile/Math.max(s.z,.001),sc=Math.min(sx,sz);
+ obj.scale.setScalar(sc);obj.position.set(x-(b.min.x+b.max.x)*.5*sc,-b.min.y*sc-.02,z-(b.min.z+b.max.z)*.5*sc);obj.rotation.y=rotate;
+ obj.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true}});scene.add(obj);
+}
+function load(url){return loader.loadAsync(url);}
+async function loadCityAssets(){
+ statusEl.textContent="تحميل أصول المدينة...";
+ const roadResults=await Promise.allSettled([load(CDN+ROAD_STRAIGHT),load(CDN+ROAD_CROSS)]);
+ if(roadResults[0].status==="fulfilled")loaded.straight=roadResults[0].value.scene;
+ if(roadResults[1].status==="fulfilled")loaded.cross=roadResults[1].value.scene;
+ const results=await Promise.allSettled(CITY.map(p=>load(CDN+p)));
+ results.forEach(r=>{if(r.status==="fulfilled")loaded.buildings.push(r.value.scene)});
+ // Tile-based city: Kenney road pieces form a connected grid, with imported buildings in each block.
+ for(let i=-4;i<=4;i++)for(let j=-4;j<=4;j++){
+   const x=i*tile,z=j*tile;
+   if(i%2===0&&j%2===0)placeRoad(loaded.cross,x,z,0);
+   else if(i%2===0)placeRoad(loaded.straight,x,z,Math.PI/2);
+   else if(j%2===0)placeRoad(loaded.straight,x,z,0);
+ }
+ let bi=0;
+ for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++){
+   if(i%2===0||j%2===0)continue;
+   const cx=i*tile,cz=j*tile;
+   const offsets=[[-5.4,-5.2],[5.4,-5.2],[-5.4,5.2],[5.4,5.2]];
+   for(let k=0;k<offsets.length;k++){
+     const src=loaded.buildings[(bi+k)%Math.max(loaded.buildings.length,1)];
+     if(src)placeAsset(src,cx+offsets[k][0],cz+offsets[k][1],8.7,8.7, k===3&&((bi+k)%3===0)?28:16,((i+j+k)%4)*Math.PI/2);
+   }
+   bi++;
+ }
+ // If the remote city pack fails, keep the world navigable and clearly report the asset fallback.
+ if(!loaded.buildings.length){
+   for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++)if(i%2!==0&&j%2!==0){
+     const m=new THREE.Mesh(new THREE.BoxGeometry(8,12,8),new THREE.MeshStandardMaterial({color:0x53646a}));
+     m.position.set(i*tile,6,j*tile);m.castShadow=true;scene.add(m);
+   }
+ }
+}
+const playerRoot=new THREE.Group();scene.add(playerRoot);playerRoot.position.set(0,0,4);
+let playerModel=null,playerMixer=null,playerActions={},activeAction=null;
+function findClip(clips,names){return clips.find(c=>names.some(n=>c.name.toLowerCase()===n.toLowerCase()))||clips.find(c=>names.some(n=>c.name.toLowerCase().includes(n.toLowerCase())));}
+function fadeAction(name,loop=true){
+ const action=playerActions[name];if(!action||activeAction===action)return;
+ action.reset();action.setLoop(loop?THREE.LoopRepeat:THREE.LoopOnce,loop?Infinity:1);action.clampWhenFinished=!loop;action.fadeIn(.18);if(activeAction)activeAction.fadeOut(.18);action.play();activeAction=action;
+}
+async function addPlayerAndNPCs(){
+ statusEl.textContent="تحميل الشخصية والحركات...";
+ const gltf=await load(PLAYER_URL);loaded.character=gltf;
+ playerModel=gltf.scene;const {b,s}=boxSize(playerModel);const scale=1.9/Math.max(s.y,.001);playerModel.scale.setScalar(scale);playerModel.position.set(-(b.min.x+b.max.x)*.5*scale,-b.min.y*scale,-(b.min.z+b.max.z)*.5*scale);
+ playerRoot.add(playerModel);playerRoot.rotation.y=Math.PI;
+ playerModel.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+ playerMixer=new THREE.AnimationMixer(playerModel);mixers.push(playerMixer);
+ const idle=findClip(gltf.animations,["Idle"]),walk=findClip(gltf.animations,["Walk"]),run=findClip(gltf.animations,["Run"]);
+ [["idle",idle],["walk",walk],["run",run]].forEach(([n,c])=>{if(c)playerActions[n]=playerMixer.clipAction(c)});
+ fadeAction(playerActions.idle?"idle":playerActions.walk?"walk":"run");
+ // A few street pedestrians, cloned with skeleton support so their downloaded rigs animate independently.
+ const routes=[
+  [{x:4,z:-18},{x:4,z:18}],
+  [{x:-20,z:4},{x:20,z:4}],
+  [{x:56,z:-18},{x:56,z:18}]
+ ];
+ routes.forEach((route,index)=>{
+   const model=SkeletonUtils.clone(gltf.scene);model.scale.copy(playerModel.scale);model.position.set(route[0].x,0,route[0].z);
+   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});scene.add(model);
+   const mixer=new THREE.AnimationMixer(model);mixers.push(mixer);
+   const clip=idle||walk;if(clip){const a=mixer.clipAction(clip);a.play()}
+   npcs.push({model,mixer,route,leg:0,speed:1.25+index*.2,walk:walk,idle:idle,act:null});
+ });
+}
+const npcs=[];
+let yaw=0,moveX=0,moveY=0,velY=0,grounded=true,running=false,dragging=false,lastX=0,lastY=0;
+const joy=document.getElementById("joy"),nub=document.getElementById("nub");
+function moveJoy(e){const r=joy.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),m=Math.min(40,Math.hypot(dx,dy)),a=Math.atan2(dy,dx);moveX=Math.cos(a)*m/40;moveY=Math.sin(a)*m/40;nub.style.left=(36+Math.cos(a)*m)+"px";nub.style.top=(36+Math.sin(a)*m)+"px"}
+joy.addEventListener("pointerdown",e=>{joy.setPointerCapture(e.pointerId);moveJoy(e)});joy.addEventListener("pointermove",e=>{if(joy.hasPointerCapture(e.pointerId))moveJoy(e)});
+function joyEnd(){moveX=moveY=0;nub.style.left="36px";nub.style.top="36px"}joy.addEventListener("pointerup",joyEnd);joy.addEventListener("pointercancel",joyEnd);
+const keys={};addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+document.getElementById("jump").onclick=()=>{if(grounded){velY=8;grounded=false}};
+const runBtn=document.getElementById("run");runBtn.addEventListener("pointerdown",e=>{e.preventDefault();running=true;runBtn.style.background="#40d9c5";runBtn.style.color="#06211e"});["pointerup","pointercancel","pointerleave"].forEach(ev=>runBtn.addEventListener(ev,()=>{running=false;runBtn.style.background="#15252dcc";runBtn.style.color="#fff"}));
+renderer.domElement.addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});
+addEventListener("pointerup",()=>dragging=false);renderer.domElement.addEventListener("pointermove",e=>{if(dragging){yaw-=(e.clientX-lastX)*.006;lastX=e.clientX;lastY=e.clientY}});
+const mapPanel=document.getElementById("mapPanel"),mapCanvas=document.getElementById("mapCanvas"),mctx=mapCanvas.getContext("2d");
+document.getElementById("mapBtn").onclick=()=>mapPanel.classList.add("open");document.getElementById("mapClose").onclick=()=>mapPanel.classList.remove("open");mapPanel.addEventListener("click",e=>{if(e.target===mapPanel)mapPanel.classList.remove("open")});
+function drawMap(){
+ const c=mapCanvas.width,ctx=mctx;ctx.clearRect(0,0,c,c);ctx.fillStyle="#18272d";ctx.fillRect(0,0,c,c);
+ const px=c/2+playerRoot.position.x/208*c,pz=c/2+playerRoot.position.z/208*c;
+ ctx.strokeStyle="#50656a";ctx.lineWidth=1;for(let n=-4;n<=4;n++){const p=c/2+n*tile/208*c;ctx.beginPath();ctx.moveTo(p,0);ctx.lineTo(p,c);ctx.stroke();ctx.beginPath();ctx.moveTo(0,p);ctx.lineTo(c,p);ctx.stroke()}
+ ctx.fillStyle="#343d42";for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++)if(i%2!==0&&j%2!==0){const x=c/2+i*tile/208*c,z=c/2+j*tile/208*c;ctx.fillRect(x-tile/208*c*.44,z-tile/208*c*.44,tile/208*c*.88,tile/208*c*.88)}
+ ctx.fillStyle="#40d9c5";ctx.beginPath();ctx.arc(px,pz,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#e9fffb";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(px,pz);ctx.lineTo(px-Math.sin(yaw)*20,pz-Math.cos(yaw)*20);ctx.stroke();
+ ctx.fillStyle="#dcebe8";ctx.font="bold 13px system-ui";ctx.fillText("NEON CITY",12,22);
+}
+const clock=new THREE.Clock();let frames=0;
+function loop(){
+ requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.04);
+ let ix=moveX+(keys.d?1:0)-(keys.a?1:0),iy=moveY+(keys.s?1:0)-(keys.w?1:0);const len=Math.hypot(ix,iy);if(len>1){ix/=len;iy/=len}
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ const speed=running?11:6.4;const moving=len>.08;
+ if(moving){const dir=forward.clone().multiplyScalar(-iy).add(right.clone().multiplyScalar(ix)).normalize();playerRoot.position.addScaledVector(dir,speed*dt);playerRoot.rotation.y=Math.atan2(dir.x,dir.z);if(playerActions.run&&running)fadeAction("run");else if(playerActions.walk)fadeAction("walk")}
+ else if(playerActions.idle)fadeAction("idle");
+ velY-=20*dt;playerRoot.position.y+=velY*dt;if(playerRoot.position.y<0){playerRoot.position.y=0;velY=0;grounded=true}
+ playerRoot.position.x=THREE.MathUtils.clamp(playerRoot.position.x,-worldEdge,worldEdge);playerRoot.position.z=THREE.MathUtils.clamp(playerRoot.position.z,-worldEdge,worldEdge);
+ for(const n of npcs){const dest=n.route[n.leg],dx=dest.x-n.model.position.x,dz=dest.z-n.model.position.z,dist=Math.hypot(dx,dz);if(dist<.7){n.leg=(n.leg+1)%n.route.length}else{n.model.position.x+=dx/dist*n.speed*dt;n.model.position.z+=dz/dist*n.speed*dt;n.model.rotation.y=Math.atan2(dx,dz)}}
+ mixers.forEach(m=>m.update(dt));
+ const target=new THREE.Vector3(playerRoot.position.x+Math.sin(yaw)*8,playerRoot.position.y+4.3,playerRoot.position.z+Math.cos(yaw)*8);
+ camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(playerRoot.position.x,playerRoot.position.y+1.1,playerRoot.position.z);
+ renderer.render(scene,camera);
+ if(++frames%8===0){drawMap();statusEl.textContent="المدينة جاهزة • "+(moving?(running?"ركض":"مشي"):"استكشاف")+" • "+Math.round(playerRoot.position.x)+", "+Math.round(playerRoot.position.z)}
+}
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}addEventListener("resize",resize);
+(async()=>{
+ try{
+  await loadCityAssets();
+  await addPlayerAndNPCs();
+  loadingEl.style.display="none";statusEl.textContent="المدينة جاهزة • استخدم العصا للاستكشاف";
+ }catch(err){
+  console.error(err);loadingEl.innerHTML="تعذر تحميل أحد الأصول من الإنترنت.<br>تأكد من اتصالك ثم أعد تحميل الصفحة.";
+  statusEl.textContent="هناك مشكلة في تحميل بعض الأصول";
+ }
+ drawMap();loop();
 })();
-</script></body></html>
+</script>
+</body>
+</html>
