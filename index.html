@@ -157,7 +157,7 @@ async function addPlayerAndNPCs(){
    const model=SkeletonUtils.clone(gltf.scene);model.scale.copy(playerModel.scale);model.position.set(route[0].x,0,route[0].z);
    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});scene.add(model);
    const mixer=new THREE.AnimationMixer(model);mixers.push(mixer);
-   const clip=idle||walk;if(clip){const a=mixer.clipAction(clip);a.play()}
+   const clip=walk||idle;if(clip){const a=mixer.clipAction(clip);a.play()}
    npcs.push({model,mixer,route,leg:0,speed:1.25+index*.2,walk:walk,idle:idle,act:null});
  });
 }
